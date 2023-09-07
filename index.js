@@ -15,7 +15,7 @@ let globalStorage = "";
 
 const recursivelyScanObject = (aValue, parent) => {
   if (typeof aValue === OBJECT_TYPE) {
-    // if a value is an object, it can be json or array, ignoring all other cases
+    // if a value is an object, it can be nested-json or array, ignoring all other cases
 
     if (!Array.isArray(aValue)) {
       // recursive this object
@@ -140,13 +140,13 @@ const compareTwoObject = (oldObject, newObject) => {
 };
 
 const obj1 = {
-  // test1: "awh1",
-  // fav: 1,
-  // arr: ["a", "b", "c"],
-  // arrobj: [
-  //   { 1: 1, 2: 2 },
-  //   { 2: 1, 4: 2 },
-  // ],
+  test1: "awh1",
+  fav: 1,
+  arr: ["a", "b", "c"],
+  arrobj: [
+    { 1: 1, 2: 2 },
+    { 2: 1, 4: 2 },
+  ],
 };
 const obj2 = {
   test1: "kaungminkhant",
