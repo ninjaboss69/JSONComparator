@@ -9,6 +9,32 @@ By configuring `scanObject()` or `readScannedObject()` ,you can get all keys fro
 
 You can also configure custom array instead of connecting with `#` or `/`.
 
+### Example Input
+
+```
+const obj1 = {
+  test1: "awh1",
+  fav: 1,
+  arr: ["a", "b", "c"],
+  arrobj: [
+    { 1: 1, 2: 2 },
+    { 2: 1, 4: 2 },
+  ],
+};
+
+const obj2 = {
+  test1: "kaungminkhant",
+
+  fav: 1,
+
+  arr: ["a", "b", "efg"],
+
+  arrobj: [{ 1: 1, 2: 34532342 }],
+
+  newObj: [{ abc: "def", hijklmn: "opqrstuvewxyz" }],
+};
+```
+
 ### Example Output
 
 ```
