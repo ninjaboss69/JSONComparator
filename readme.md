@@ -49,4 +49,8 @@ const obj2 = {
 ]
 ```
 
+### Added minifed and updated version
+
+`Generated minified code using online minifier which save 58.76% space.I am working on updated by assigning each object with unique ID like react reconciliation algorithm.`
+
 Contributions, issues, and feature requests are welcome!
