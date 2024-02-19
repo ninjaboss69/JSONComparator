@@ -61,7 +61,7 @@ const readObject = (key, obj) => {
 const process = (
   manipulatedString,
   scannedObject,
-  paralleledObject,
+  supportingObject,
   reversing
 ) => {
   const keysArray = manipulatedString.split(KC);
@@ -73,16 +73,16 @@ const process = (
 
     // parallelObject is the one to compare aka new value
 
-    let parallelObject = paralleledObject;
+    let cloneSupporting = supportingObject;
 
     for (let j = 0; j < nestedArray.length; j++) {
       if (nestedArray[j].length === 0) return;
       const key = nestedArray[j];
       consumerObject = readObject(key, consumerObject);
-      if (parallelObject !== undefined)
-        parallelObject = readObject(key, parallelObject);
+      if (cloneSupporting !== undefined)
+      cloneSupporting = readObject(key, cloneSupporting);
 
-      if (consumerObject && parallelObject === undefined) {
+      if (consumerObject && cloneSupporting === undefined) {
         if (reversing === undefined) {
           activityLogArray.push({
             delete: {
@@ -101,12 +101,12 @@ const process = (
         break;
       }
 
-      if (isPlainValue(reversing, consumerObject, parallelObject))
+      if (isPlainValue(reversing, consumerObject, cloneSupporting))
         activityLogArray.push({
           change: {
             key: `${nestedArray}`,
             from: `${consumerObject}`,
-            to: `${parallelObject}`,
+            to: `${cloneSupporting}`,
           },
         });
     }
@@ -114,16 +114,16 @@ const process = (
   }
 };
 
-const isPlainValue = (reversing, consumerObject, parallelObject) => {
+const isPlainValue = (reversing, consumerObject, cloneSupporting) => {
   return (
     reversing === undefined &&
     consumerObject !== undefined &&
-    parallelObject !== undefined &&
+    cloneSupporting !== undefined &&
     typeof consumerObject !== OBJECT_TYPE &&
-    typeof parallelObject !== OBJECT_TYPE &&
+    typeof cloneSupporting !== OBJECT_TYPE &&
     !Array.isArray(consumerObject) &&
-    !Array.isArray(parallelObject) &&
-    consumerObject !== parallelObject
+    !Array.isArray(cloneSupporting) &&
+    consumerObject !== cloneSupporting
   );
 };
 
@@ -140,13 +140,17 @@ const readScannedObject = (
   process(manipulatedString, scannedObject, paralleledObject, reversing);
 };
 
-const compareTwoObject = (oldObject, newObject) => {
+const diffJSON = (oldObject, newObject) => {
   const returnedObject = {};
   scanObject(oldObject);
-  oldObjectKeys = globalStorage.split(KC);
+  const nko = globalStorage.split(KC);
+  nko.pop();
+  oldObjectKeys =nko;
   readScannedObject(globalStorage, oldObject, newObject);
   scanObject(newObject);
-  newObjectKeys = globalStorage.split(KC);
+  const oko=globalStorage.split(KC);
+  oko.pop();
+  newObjectKeys = oko;
   readScannedObject(globalStorage, newObject, oldObject, true);
 
   returnedObject.oldObjectKeys = oldObjectKeys;
@@ -169,25 +173,7 @@ const compareTwoObject = (oldObject, newObject) => {
   return returnedObject;
 };
 
-const obj1 = {
-  test1: "awh1",
-  fav: 1,
-  arr: ["a", "b", "c"],
-  arrobj: [
-    { 1: 1, 2: 2 },
-    { 2: 1, 4: 2 },
-  ],
-};
 
-const obj2 = {
-  test1: "kaungmin khant",
 
-  fav: 2,
 
-  arr: ["a", "b", "efg"],
-
-  arrobj: [{ 1: 1, 2: 34532342 }],
-
-  newObj: [{ abc: "def", hijklmn: "opqrstuvewxyz" }],
-};
-console.log(compareTwoObject(obj1, obj2));
+exports.diffJSON = diffJSON;
