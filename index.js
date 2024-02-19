@@ -1,17 +1,23 @@
-const OBJECT_TYPE = "object";
-
 // NKC ---> nested key connector
 // KC ---> key connector
+
+const OBJECT_TYPE = "object";
 
 const NKC = "#";
 
 const KC = "/";
 
-const valueArray = [];
+let valueArray = [];
 
-const activityLogArray = [];
+let activityLogArray = [];
+
+let oldObjectKeys = [];
+
+let newObjectKeys = [];
 
 let globalStorage = "";
+
+let res = [];
 
 const recursivelyScanObject = (aValue, parent) => {
   if (typeof aValue === OBJECT_TYPE) {
@@ -78,50 +84,53 @@ const process = (
 
       if (consumerObject && parallelObject === undefined) {
         if (reversing === undefined) {
-          activityLogArray.push(
-            `Value ${getValueFromKeys(
-              nestedArray,
-              0,
-              scannedObject
-            )} is deleted where key is ${nestedArray}`
-          );
+          activityLogArray.push({
+            delete: {
+              key: `${nestedArray}`,
+              value: `${getValueFromKeys(nestedArray, 0, scannedObject)}`,
+            },
+          });
         } else if (reversing === true)
-          activityLogArray.push(
-            `Value ${getValueFromKeys(
-              nestedArray,
-              0,
-              scannedObject
-            )} is added where key is ${nestedArray}`
-          );
+          activityLogArray.push({
+            add: {
+              key: `${nestedArray}`,
+              value: `${getValueFromKeys(nestedArray, 0, scannedObject)}`,
+            },
+          });
+
         break;
       }
 
-      if (
-        reversing === undefined &&
-        consumerObject !== undefined &&
-        parallelObject !== undefined &&
-        typeof consumerObject !== OBJECT_TYPE &&
-        typeof parallelObject !== OBJECT_TYPE &&
-        !Array.isArray(consumerObject) &&
-        !Array.isArray(parallelObject) &&
-        consumerObject !== parallelObject
-      ) {
-        activityLogArray.push(
-          `from ${consumerObject} to ${
-            parallelObject === "" ? "empty string" : parallelObject
-          } where key is ${nestedArray}`
-        );
-      }
+      if (isPlainValue(reversing, consumerObject, parallelObject))
+        activityLogArray.push({
+          change: {
+            key: `${nestedArray}`,
+            from: `${consumerObject}`,
+            to: `${parallelObject}`,
+          },
+        });
     }
     valueArray.push(consumerObject);
   }
+};
+
+const isPlainValue = (reversing, consumerObject, parallelObject) => {
+  return (
+    reversing === undefined &&
+    consumerObject !== undefined &&
+    parallelObject !== undefined &&
+    typeof consumerObject !== OBJECT_TYPE &&
+    typeof parallelObject !== OBJECT_TYPE &&
+    !Array.isArray(consumerObject) &&
+    !Array.isArray(parallelObject) &&
+    consumerObject !== parallelObject
+  );
 };
 
 const scanObject = (aValue) => {
   globalStorage = "";
   recursivelyScanObject(aValue);
 };
-
 const readScannedObject = (
   manipulatedString,
   scannedObject,
@@ -132,11 +141,32 @@ const readScannedObject = (
 };
 
 const compareTwoObject = (oldObject, newObject) => {
+  const returnedObject = {};
   scanObject(oldObject);
+  oldObjectKeys = globalStorage.split(KC);
   readScannedObject(globalStorage, oldObject, newObject);
   scanObject(newObject);
+  newObjectKeys = globalStorage.split(KC);
   readScannedObject(globalStorage, newObject, oldObject, true);
-  console.log(activityLogArray);
+
+  returnedObject.oldObjectKeys = oldObjectKeys;
+  returnedObject.newObjectKeys = newObjectKeys;
+  returnedObject.activityLog = activityLogArray;
+
+  // reset all data : mandatory
+  valueArray = [];
+
+  activityLogArray = [];
+
+  oldObjectKeys = [];
+
+  newObjectKeys = [];
+
+  globalStorage = "";
+
+  res = [];
+
+  return returnedObject;
 };
 
 const obj1 = {
@@ -148,10 +178,11 @@ const obj1 = {
     { 2: 1, 4: 2 },
   ],
 };
-const obj2 = {
-  test1: "kaungminkhant",
 
-  fav: 1,
+const obj2 = {
+  test1: "kaungmin khant",
+
+  fav: 2,
 
   arr: ["a", "b", "efg"],
 
@@ -159,5 +190,4 @@ const obj2 = {
 
   newObj: [{ abc: "def", hijklmn: "opqrstuvewxyz" }],
 };
-
-compareTwoObject(obj1, obj2);
+console.log(compareTwoObject(obj1, obj2));
