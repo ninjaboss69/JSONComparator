@@ -80,20 +80,20 @@ const process = (
       const key = nestedArray[j];
       consumerObject = readObject(key, consumerObject);
       if (cloneSupporting !== undefined)
-      cloneSupporting = readObject(key, cloneSupporting);
+        cloneSupporting = readObject(key, cloneSupporting);
 
       if (consumerObject && cloneSupporting === undefined) {
         if (reversing === undefined) {
           activityLogArray.push({
             delete: {
-              key: `${nestedArray}`,
+              key: `${nestedArray.join("->")}`,
               value: `${getValueFromKeys(nestedArray, 0, scannedObject)}`,
             },
           });
         } else if (reversing === true)
           activityLogArray.push({
             add: {
-              key: `${nestedArray}`,
+              key: `${nestedArray.join("->")}`,
               value: `${getValueFromKeys(nestedArray, 0, scannedObject)}`,
             },
           });
@@ -104,7 +104,7 @@ const process = (
       if (isPlainValue(reversing, consumerObject, cloneSupporting))
         activityLogArray.push({
           change: {
-            key: `${nestedArray}`,
+            key: `${nestedArray.join("->")}`,
             from: `${consumerObject}`,
             to: `${cloneSupporting}`,
           },
@@ -145,10 +145,10 @@ const diffJSON = (oldObject, newObject) => {
   scanObject(oldObject);
   const nko = globalStorage.split(KC);
   nko.pop();
-  oldObjectKeys =nko;
+  oldObjectKeys = nko;
   readScannedObject(globalStorage, oldObject, newObject);
   scanObject(newObject);
-  const oko=globalStorage.split(KC);
+  const oko = globalStorage.split(KC);
   oko.pop();
   newObjectKeys = oko;
   readScannedObject(globalStorage, newObject, oldObject, true);
@@ -172,8 +172,5 @@ const diffJSON = (oldObject, newObject) => {
 
   return returnedObject;
 };
-
-
-
 
 exports.diffJSON = diffJSON;

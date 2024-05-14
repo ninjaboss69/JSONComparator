@@ -1,12 +1,15 @@
 {
   "name": "diff-nested-json",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "Jerry",
+  "keywords": [
+    "nested json compare",
+    "compare nested json"
+  ],
+  "author": "Gabby Thy Ninjaboss",
   "license": "ISC"
 }

@@ -12,7 +12,7 @@ Then you can use diffJSON right away.
 
 ```
 
-const {diffJSON} = require("diff-nested-json)
+const {diffJSON} = require("diff-nested-json")
 
 ```
 
@@ -20,33 +20,66 @@ const {diffJSON} = require("diff-nested-json)
 
 You can start by copying index.js whole file.
 
-
-### Example Usage 
+### Example Usage
 
 ```
 
 const obj1 = {
-  test1: "awh1",
-  fav: 1,
-  arr: ["a", "b", "c"],
-  arrobj: [
-    { 1: 1, 2: 2 },
-    { 2: 1, 4: 2 },
-  ],
+  person: {
+    name: "Ninjaboss",
+    age: 23,
+    address: {
+      city: "New York",
+      zip: "10001",
+      street: "123 Main St",
+    },
+    contacts: [
+      {
+        type: "email",
+        value: "john@example.com",
+      },
+      {
+        type: "phone",
+        value: "123-456-7890",
+      },
+    ],
+  },
 };
 
 const obj2 = {
-  test1: "kaungminkhant",
-
-  fav: 1,
-
-  arr: ["a", "b", "efg"],
-
-  arrobj: [{ 1: 1, 2: 34532342 }],
-
-  newObj: [{ abc: "def", hijklmn: "opqrstuvewxyz" }],
+  person: {
+    name: "Gabby",
+    agb: 24,
+    height: "5' 9''",
+    address: {
+      city: "San Franscio",
+      zip: "10005",
+      street: "123 Main St",
+    },
+    contacts: [
+      {
+        type: "email",
+        value: "laminoak286@gmail.com",
+      },
+    ],
+  },
+  another_person: {
+    name: "John",
+    agb: 25,
+    height: "5' 10''",
+    address: {
+      city: "San Franscio",
+      zip: "10005",
+      street: "123 Main St",
+    },
+    contacts: [
+      {
+        type: "email",
+        value: "john@gmail.com",
+      },
+    ],
+  },
 };
-
 
 
 ```
@@ -55,89 +88,98 @@ const obj2 = {
 
 ```
 
- diffJSON(obj1,obj2)
+const res = diffJSON(obj1,obj2)
 
 ```
 
 ### Example Output
 
-if we output the result,
+if we output the res,
 
 ```
 {
-  "oldObjectKeys": [
-    "test1",
-    "fav",
-    "arr#0",
-    "arr#1",
-    "arr#2",
-    "arrobj#0#1",
-    "arrobj#0#2",
-    "arrobj#1#2",
-    "arrobj#1#4"
+  oldObjectKeys: [
+    'person#name',
+    'person#age',
+    'person#address#city',
+    'person#address#zip',
+    'person#address#street',
+    'person#contacts#0#type',
+    'person#contacts#0#value',
+    'person#contacts#1#type',
+    'person#contacts#1#value'
   ],
-  "newObjectKeys": [
-    "test1",
-    "fav",
-    "arr#0",
-    "arr#1",
-    "arr#2",
-    "arrobj#0#1",
-    "arrobj#0#2",
-    "newObj#0#abc",
-    "newObj#0#hijklmn"
+  newObjectKeys: [
+    'person#name',
+    'person#agb',
+    'person#height',
+    'person#address#city',
+    'person#address#zip',
+    'person#address#street',
+    'person#contacts#0#type',
+    'person#contacts#0#value',
+    'another_person#name',
+    'another_person#agb',
+    'another_person#height',
+    'another_person#address#city',
+    'another_person#address#zip',
+    'another_person#address#street',
+    'another_person#contacts#0#type',
+    'another_person#contacts#0#value'
   ],
-  "activityLog": [
+  activityLog: [
+    { change: { key: 'person->name', from: 'Ninjaboss', to: 'Gabby' } },
+    { delete: { key: 'person->age', value: '23' } },
     {
-      "change": {
-        "key": "test1",
-        "from": "awh1",
-        "to": "kaungminkhant"
+      change: {
+        key: 'person->address->city',
+        from: 'New York',
+        to: 'San Franscio'
       }
     },
     {
-      "change": {
-        "key": "arr,2",
-        "from": "c",
-        "to": "efg"
-      }
+      change: { key: 'person->address->zip', from: '10001', to: '10005' }
     },
     {
-      "change": {
-        "key": "arrobj,0,2",
-        "from": "2",
-        "to": "34532342"
+      change: {
+        key: 'person->contacts->0->value',
+        from: 'john@example.com',
+        to: 'laminoak286@gmail.com'
       }
     },
+    { delete: { key: 'person->contacts->1->type', value: 'phone' } },
     {
-      "delete": {
-        "key": "arrobj,1,2",
-        "value": "1"
-      }
+      delete: { key: 'person->contacts->1->value', value: '123-456-7890' }
+    },
+    { add: { key: 'person->agb', value: '24' } },
+    { add: { key: 'person->height', value: "5' 9''" } },
+    { add: { key: 'another_person->name', value: 'John' } },
+    { add: { key: 'another_person->agb', value: '25' } },
+    { add: { key: 'another_person->height', value: "5' 10''" } },
+    {
+      add: { key: 'another_person->address->city', value: 'San Franscio' }
+    },
+    { add: { key: 'another_person->address->zip', value: '10005' } },
+    {
+      add: { key: 'another_person->address->street', value: '123 Main St' }
     },
     {
-      "delete": {
-        "key": "arrobj,1,4",
-        "value": "2"
-      }
+      add: { key: 'another_person->contacts->0->type', value: 'email' }
     },
     {
-      "add": {
-        "key": "newObj,0,abc",
-        "value": "def"
-      }
-    },
-    {
-      "add": {
-        "key": "newObj,0,hijklmn",
-        "value": "opqrstuvewxyz"
+      add: {
+        key: 'another_person->contacts->0->value',
+        value: 'john@gmail.com'
       }
     }
   ]
 }
+
 ```
 
-##### You can generate a minifed version if you want, which can save some space. If you are using webpack or other module bundlers, they will be minifed the package automatically.
+Note : When it comes to array, the package will compare with index side by side.
+
+##### You can generate a minified version if you want, which can save some space. If you are using webpack or other bundlers, they will be minifed the package automatically.
 
 `Inspired by react reconciliation algorithm,
  object with key is not index sensitive but array will be.;`
