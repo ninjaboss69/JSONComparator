@@ -20,6 +20,16 @@ const {diffJSON} = require("diff-nested-json")
 
 You can start by copying index.js whole file.
 
+### OR
+
+If you clone this repo, you can check with
+
+```
+
+node example.js
+
+```
+
 ### Example Usage
 
 ```
