@@ -25,10 +25,10 @@ const obj1 = {
 const obj2 = {
   person: {
     name: "Gabby",
-    agb: 24,
+    age: 24,
     height: "5' 9''",
     address: {
-      city: "San Franscio",
+      city: "Yangon",
       zip: "10005",
       street: "123 Main St",
     },
@@ -39,21 +39,10 @@ const obj2 = {
       },
     ],
   },
-  another_person: {
-    name: "John",
-    agb: 25,
-    height: "5' 10''",
-    address: {
-      city: "San Franscio",
-      zip: "10005",
-      street: "123 Main St",
-    },
-    contacts: [
-      {
-        type: "email",
-        value: "john@gmail.com",
-      },
-    ],
+  newKey: "newValue",
+  newNestedKey: {
+    newNestedKey1: "nested key 1",
+    newNestedKey2: "nested key 2",
   },
 };
 const result = diffJSON(obj1, obj2);

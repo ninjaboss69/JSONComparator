@@ -1,176 +1,112 @@
-// NKC ---> nested key connector
-// KC ---> key connector
+// This package only considers array and object(key value) and ignore functions and all other cases
 
-const OBJECT_TYPE = "object";
+const isArray = (val) => Array.isArray(val);
 
-const NKC = "#";
+const isObject = (val) => typeof val === "object";
 
-const KC = "/";
+const powerCheck = (reversing, alpha, beta) =>
+  reversing === undefined &&
+  alpha !== undefined &&
+  beta !== undefined &&
+  typeof alpha !== "object" &&
+  typeof beta !== "object" &&
+  !Array.isArray(alpha) &&
+  !Array.isArray(beta) &&
+  alpha !== beta;
 
-let valueArray = [];
+const valueFromKeys = (keys, index, current) => {
+  if (isObject(current) || isArray(current))
+    return valueFromKeys(keys, index + 1, current[keys[index]]);
+  return current;
+};
 
-let activityLogArray = [];
-
-let oldObjectKeys = [];
-
-let newObjectKeys = [];
-
-let globalStorage = "";
-
-let res = [];
-
-const recursivelyScanObject = (aValue, parent) => {
-  if (typeof aValue === OBJECT_TYPE) {
-    // if a value is an object, it can be nested-json or array, ignoring all other cases
-
-    if (!Array.isArray(aValue)) {
-      // recursive this object
-
-      Object.keys(aValue).map((key) => {
-        let current = "";
-        if (parent) current = parent + NKC + key;
-        else current = key;
-        recursivelyScanObject(aValue[key], current);
-      });
-    }
-
-    if (Array.isArray(aValue)) {
-      aValue.map((ele, i) => {
-        let current = "";
-        if (parent) current = parent + NKC + i;
-        else current = i;
-        recursivelyScanObject(ele, current);
-      });
-    }
-  } else {
-    if (parent) globalStorage += parent + KC;
+const traverse = (current, parent, keyStorage, map) => {
+  if (isArray(current)) {
+    current.map((ele, i) => {
+      let np = "";
+      if (parent) np = parent + "->" + i;
+      else np = i;
+      traverse(ele, np, keyStorage, map);
+    });
   }
-};
-
-const getValueFromKeys = (keysArray, index, obj) => {
-  if (typeof obj === OBJECT_TYPE || Array.isArray(obj)) {
-    return getValueFromKeys(keysArray, index + 1, obj[keysArray[index]]);
+  if (isObject(current) && !isArray(current)) {
+    Object.keys(current).map((key) => {
+      let np = "";
+      if (parent) np = parent + "->" + key;
+      else np = key;
+      traverse(current[key], np, keyStorage, map);
+    });
   }
-  return obj;
+
+  // skipping main object's parent being undefined
+
+  if (!isObject(current) && parent) {
+    keyStorage.push(parent);
+    map.set(parent, current);
+  }
+  return keyStorage;
 };
 
-const readObject = (key, obj) => {
-  return obj[key];
-};
-
-const process = (
-  manipulatedString,
-  scannedObject,
-  supportingObject,
-  reversing
+// comparing from left side
+const leftCompare = (
+  keyStorage,
+  fastMap,
+  currentObject,
+  referenceObject,
+  reversing,
+  logs
 ) => {
-  const keysArray = manipulatedString.split(KC);
+  keyStorage.map((key) => {
+    const splitKeys = key.split("->");
+    const referenceValue = valueFromKeys(splitKeys, 0, referenceObject);
 
-  for (let i = 0; i < keysArray.length; i++) {
-    const nestedArray = keysArray[i].split(NKC);
-
-    let consumerObject = scannedObject;
-
-    // parallelObject is the one to compare aka new value
-
-    let cloneSupporting = supportingObject;
-
-    for (let j = 0; j < nestedArray.length; j++) {
-      if (nestedArray[j].length === 0) return;
-      const key = nestedArray[j];
-      consumerObject = readObject(key, consumerObject);
-      if (cloneSupporting !== undefined)
-        cloneSupporting = readObject(key, cloneSupporting);
-
-      if (consumerObject && cloneSupporting === undefined) {
-        if (reversing === undefined) {
-          activityLogArray.push({
-            delete: {
-              key: `${nestedArray.join("->")}`,
-              value: `${getValueFromKeys(nestedArray, 0, scannedObject)}`,
-            },
-          });
-        } else if (reversing === true)
-          activityLogArray.push({
-            add: {
-              key: `${nestedArray.join("->")}`,
-              value: `${getValueFromKeys(nestedArray, 0, scannedObject)}`,
-            },
-          });
-
-        break;
-      }
-
-      if (isPlainValue(reversing, consumerObject, cloneSupporting))
-        activityLogArray.push({
-          change: {
-            key: `${nestedArray.join("->")}`,
-            from: `${consumerObject}`,
-            to: `${cloneSupporting}`,
+    if (fastMap.get(key) && !referenceValue)
+      if (reversing === undefined)
+        logs.push({
+          delete: {
+            key: `${splitKeys.join("->")}`,
+            value: `${fastMap.get(key)}`,
           },
         });
-    }
-    valueArray.push(consumerObject);
-  }
-};
+      else if (reversing === true)
+        logs.push({
+          add: {
+            key: `${splitKeys.join("->")}`,
+            value: `${valueFromKeys(splitKeys, 0, currentObject)}`,
+          },
+        });
 
-const isPlainValue = (reversing, consumerObject, cloneSupporting) => {
-  return (
-    reversing === undefined &&
-    consumerObject !== undefined &&
-    cloneSupporting !== undefined &&
-    typeof consumerObject !== OBJECT_TYPE &&
-    typeof cloneSupporting !== OBJECT_TYPE &&
-    !Array.isArray(consumerObject) &&
-    !Array.isArray(cloneSupporting) &&
-    consumerObject !== cloneSupporting
-  );
-};
-
-const scanObject = (aValue) => {
-  globalStorage = "";
-  recursivelyScanObject(aValue);
-};
-const readScannedObject = (
-  manipulatedString,
-  scannedObject,
-  paralleledObject,
-  reversing
-) => {
-  process(manipulatedString, scannedObject, paralleledObject, reversing);
+    if (powerCheck(reversing, fastMap.get(key), referenceValue))
+      logs.push({
+        change: {
+          key: `${splitKeys.join("->")}`,
+          from: `${fastMap.get(key)}`,
+          to: `${valueFromKeys(splitKeys, 0, referenceObject)}`,
+        },
+      });
+  });
 };
 
 const diffJSON = (oldObject, newObject) => {
-  const returnedObject = {};
-  scanObject(oldObject);
-  const nko = globalStorage.split(KC);
-  nko.pop();
-  oldObjectKeys = nko;
-  readScannedObject(globalStorage, oldObject, newObject);
-  scanObject(newObject);
-  const oko = globalStorage.split(KC);
-  oko.pop();
-  newObjectKeys = oko;
-  readScannedObject(globalStorage, newObject, oldObject, true);
+  const logs = [];
+  const oldKeyStorage = [];
+  const newKeyStorage = [];
+  const oldFastMap = new Map();
+  const newFastMap = new Map();
 
-  returnedObject.oldObjectKeys = oldObjectKeys;
-  returnedObject.newObjectKeys = newObjectKeys;
-  returnedObject.activityLog = activityLogArray;
+  traverse(oldObject, undefined, oldKeyStorage, oldFastMap);
+  leftCompare(oldKeyStorage, oldFastMap, oldObject, newObject, undefined, logs);
+  traverse(newObject, undefined, newKeyStorage, newFastMap);
+  leftCompare(newKeyStorage, newFastMap, newObject, oldObject, true, logs);
 
-  // reset all data : mandatory
-  valueArray = [];
-
-  activityLogArray = [];
-
-  oldObjectKeys = [];
-
-  newObjectKeys = [];
-
-  globalStorage = "";
-
-  res = [];
-
-  return returnedObject;
+  const returnedValue = {
+    logs,
+    oldObjectKeys: oldKeyStorage,
+    newObjectKeys: newKeyStorage,
+    oldFastMap: Object.fromEntries(oldFastMap),
+    newFastMap: Object.fromEntries(newFastMap),
+  };
+  return returnedValue;
 };
 
 exports.diffJSON = diffJSON;
